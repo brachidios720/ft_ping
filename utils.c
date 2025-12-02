@@ -1,0 +1,78 @@
+#include "includes/ping.h"
+
+
+int pars_args_to_ping_url(int ac, char **av)
+{
+    // permet de determiner si l extension est valide ou non
+    (void)ac;
+    char *str;
+    char *ext;
+    size_t flag = 1;
+    size_t check = 0;
+    size_t here = 0;
+
+    str = av[1];
+    if(str == NULL)
+        return 1;
+
+    while((str[check] != '.') && str[check])
+        check++;
+
+    if(str[check] == '.')
+        here += 1;
+    else
+        return 1;
+    
+    size_t len = strlen(str);
+    
+    while(str[len] !=  '.')
+        len --;
+    len++;
+    ext = extract_extension(av);
+    if(ext == NULL)
+        return 1;
+    const char *tab[] = { EXTENSION };
+    size_t i = 0;
+    while(tab[i]){
+
+        if(strcmp(tab[i], ext) == 0)
+            flag = 0;
+        i++;
+    }
+    free(ext);
+    if(flag == 0)
+        return 0;
+    else 
+        return 1;
+}
+
+
+char *extract_extension(char **av){
+
+    // ret et l'extension utiliser dans l'arguments rentrer
+    size_t i = 0;
+    size_t start = 0;
+    while(av[1][i] != '.')
+        i++;
+    start = i;
+    while(av[1][i])
+        i++;
+    if((i - start) > 3 )
+        return NULL;
+    size_t x = 0;
+    char *ret = malloc(sizeof(char) * 4);
+    if(!ret)
+        return NULL;
+    while(start < i){
+        ret[x] = av[1][start];
+        start++;
+        x++;
+    }
+    ret[x] = '\0';
+    return ret;
+}
+
+// int check_args_to_ping(char **av){
+
+
+// }

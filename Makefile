@@ -2,7 +2,10 @@
 PING = ft_ping
 
 # Fichiers sources
-PING_SRC = 
+PING_SRC = utils.c \
+			ping.c \
+			parse_arg.c 
+			
 # Compilateurs et flags
 CC = gcc
 CFLAGS = -Wall -Wextra -Werror -g3
