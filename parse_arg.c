@@ -6,11 +6,17 @@ int parse_args(int ac, char **av){
     if(ac < 2 && ac > 4)
         return(1);
 
-    if(pars_args_to_ping_url(ac, av) == 1){
-        return(1);
-    // if(ft_strncmp(av[1], "ping", 4) != 0){
-    //     print("Fomat error in ping word");
-    //     return(1);
+    if(check_args_to_ping(av) == 0){
+        if(is_valid_ipv4(av[1]) == 1){
+            printf("ERROR: IP Format Error\n");
+            return 1;
+        }
+    }
+    else{
+        if(pars_args_to_ping_url(ac, av) == 1){
+            printf("ERROR: URL Format Error\n");
+            return 1;
+        }
     }
     return(0);
 }

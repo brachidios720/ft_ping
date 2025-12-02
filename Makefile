@@ -2,7 +2,7 @@
 PING = ft_ping
 
 # Fichiers sources
-PING_SRC = utils.c \
+PING_SRC = parsing_utils.c \
 			ping.c \
 			parse_arg.c 
 			
