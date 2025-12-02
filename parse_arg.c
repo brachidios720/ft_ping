@@ -3,7 +3,7 @@
 
 int parse_args(int ac, char **av){
 
-    if(ac < 2 && ac > 4)
+    if(ac < 2 || ac > 4)
         return(1);
 
     if(check_args_to_ping(av) == 0){
