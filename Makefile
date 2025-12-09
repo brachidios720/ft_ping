@@ -4,7 +4,8 @@ PING = ft_ping
 # Fichiers sources
 PING_SRC = parsing_utils.c \
 			ping.c \
-			parse_arg.c 
+			parse_arg.c \
+			ICMP_packet.c
 			
 # Compilateurs et flags
 CC = gcc
@@ -24,6 +25,10 @@ clean:
 # Nettoyage complet
 fclean: clean
 	rm -f $(PING)
+
+# Autoriser l'utilisation des SOCKET ICMP
+cap: 
+	sudo setcap cap_net_raw+ep ./ft_ping
 
 # Recompilation complète
 re: fclean all
