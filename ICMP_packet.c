@@ -36,5 +36,6 @@ void build_icmp_packet(struct icmphdr *icmp, int seq)
     icmp->code = 0;
     icmp->un.echo.id = getpid();
     icmp->un.echo.sequence = seq;
-    
+    icmp->checksum = 0;
 }  
+
