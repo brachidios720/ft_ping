@@ -107,9 +107,6 @@ int main(int ac, char **av)
     struct sockaddr_in addr;
     socklen_t addr_len = sizeof(addr);
 
-    dest->sin_family = AF_INET;
-    dest->sin_addr.s_addr = inet_addr(av[1]);
-
     printf("PING %s:\n", av[1]);
 
     while (1)
