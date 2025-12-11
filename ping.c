@@ -7,6 +7,8 @@
 #include <sys/time.h>
 #include <signal.h>
 #include <errno.h>
+#include <string.h>
+#include <netdb.h> 
 
 
 typedef struct s_stats {
@@ -16,6 +18,10 @@ typedef struct s_stats {
     double max;
     double sum;
 } t_stats;
+
+struct addrinfo hints;
+struct addrinfo *res;
+
 
 static t_stats stats;
 
@@ -74,13 +80,35 @@ int main(int ac, char **av)
         return 1;
     }
 
+    // permet de pourvoir donner une addresse ipv4 si nom de domaine rentrer
+    memset(&hints, 0, sizeof(hints));
+    hints.ai_family = AF_INET;        // Obligatoire : ping 42 = IPv4
+    hints.ai_socktype = SOCK_RAW;
+    hints.ai_protocol = IPPROTO_ICMP;
+
+    int ret = getaddrinfo(av[1], NULL, &hints, &res);
+    if (ret != 0)
+    {
+        fprintf(stderr, "ft_ping: %s: %s\n", av[1], gai_strerror(ret));
+        exit(1);
+    }
+
+    // Résultat IPv4
+    struct sockaddr_in *dest = (struct sockaddr_in *)res->ai_addr;
+
+    // Pour afficher l’IP
+    char ipstr[INET_ADDRSTRLEN];
+    inet_ntop(AF_INET, &dest->sin_addr, ipstr, sizeof(ipstr));
+
+    printf("PING %s (%s):\n", av[1], ipstr);
+
+
     char buffer[1024];
     struct sockaddr_in addr;
     socklen_t addr_len = sizeof(addr);
 
-    struct sockaddr_in dest;
-    dest.sin_family = AF_INET;
-    dest.sin_addr.s_addr = inet_addr(av[1]);
+    dest->sin_family = AF_INET;
+    dest->sin_addr.s_addr = inet_addr(av[1]);
 
     printf("PING %s:\n", av[1]);
 
@@ -93,7 +121,7 @@ int main(int ac, char **av)
         gettimeofday(&start, NULL);
 
         ssize_t sent = sendto(sock, &icmp, sizeof(icmp), 0,
-            (struct sockaddr *)&dest, sizeof(dest));
+            (struct sockaddr *)dest, sizeof(struct sockaddr_in));
 
         stats.transmitted++;
 
