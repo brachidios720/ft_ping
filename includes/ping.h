@@ -12,6 +12,8 @@
 
 # define EXTENSION  ".fr", ".com", ".org" , NULL
 
+extern int g_verbose;
+
 
 
 
