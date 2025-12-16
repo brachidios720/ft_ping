@@ -80,6 +80,7 @@ int main(int ac, char **av)
 
     struct sockaddr_in dest;
     dest.sin_family = AF_INET;
+    dest.sin_port = 0; //pas de port pour le ICMP LOL
     dest.sin_addr.s_addr = inet_addr(av[1]);
 
     printf("PING %s:\n", av[1]);
