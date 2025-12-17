@@ -124,3 +124,20 @@ int is_valid_ipv4(const char *ip){
     }
     return seg == 4 ? 0 : 1;
 }
+
+
+void print_help(void){
+
+    printf("Usage: ft_ping [options] <destination>\n");
+    printf("Options:\n");
+    printf("  -v    verbose output\n");
+    printf("  -?    display this help\n");
+}
+
+int check_option(char **av){
+
+
+    if(strcmp(av[1], "-?") == 0)
+        return 1;
+    return 0;
+}
