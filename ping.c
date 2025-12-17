@@ -9,6 +9,7 @@
 #include <errno.h>
 #include <string.h>
 #include <netdb.h> 
+#include <unistd.h>
 
 
 typedef struct s_stats {
@@ -24,6 +25,7 @@ struct addrinfo *res;
 
 
 static t_stats stats;
+int g_verbose = 0;
 
 void sigint_handler(int sig)
 {
@@ -48,7 +50,7 @@ void sigint_handler(int sig)
 
 int main(int ac, char **av)
 {
-    if(parse_args(ac, av) == 1)
+    if (parse_args(ac, av) == 1)
         return 1;
 
     signal(SIGINT, sigint_handler);
@@ -65,20 +67,19 @@ int main(int ac, char **av)
 
     sock = socket(AF_INET, SOCK_RAW, IPPROTO_ICMP);
     if(sock < 0)
-        return(perror("socket"), 1);
+        return (perror("socket"), 1);
 
     printf("[OK] SOCKET CREE AVEC SUCCES\n");
 
+    // Timeout de 1 seconde
     struct timeval tv;
-    tv.tv_sec = 1 ;
+    tv.tv_sec = 1;
     tv.tv_usec = 0;
+    setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv));
 
-    if (setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv)) < 0)
-    {
-        perror("socketopt");
-        close(sock);
-        return 1;
-    }
+    // TTL = 64 (comme ping Linux)
+    int ttl = 64;
+    setsockopt(sock, IPPROTO_IP, IP_TTL, &ttl, sizeof(ttl));
 
     // permet de pourvoir donner une addresse ipv4 si nom de domaine rentrer
     memset(&hints, 0, sizeof(hints));
@@ -107,6 +108,11 @@ int main(int ac, char **av)
     struct sockaddr_in addr;
     socklen_t addr_len = sizeof(addr);
 
+    struct sockaddr_in dest;
+    dest.sin_family = AF_INET;
+    dest.sin_port = 0; //pas de port pour le ICMP LOL
+    dest.sin_addr.s_addr = inet_addr(av[1]);
+
     printf("PING %s:\n", av[1]);
 
     while (1)
@@ -128,35 +134,57 @@ int main(int ac, char **av)
             continue;
         }
 
-        ssize_t ret = recvfrom(sock, buffer, sizeof(buffer), 0,
-            (struct sockaddr *)&addr, &addr_len);
+        int error_shown = 0;
+        int got_reply = 0;
 
-        gettimeofday(&end, NULL);
+        while (1)
+        {
+            ssize_t ret = recvfrom(sock, buffer, sizeof(buffer), 0,
+                (struct sockaddr *)&addr, &addr_len);
 
-        if (ret < 0)
-        {
-            if (errno == EAGAIN)
-                printf("Request timeout for icmp_seq %d\n", seq);
-        }
-        else
-        {
-            double time_ms = (end.tv_sec - start.tv_sec) * 1000.0 +
-                (end.tv_usec - start.tv_usec) / 1000.0;
+            gettimeofday(&end, NULL);
+
+            if (ret < 0)
+            {
+                if (errno == EAGAIN)
+                {
+                    if (!got_reply && !error_shown)
+                        printf("Request timeout for icmp_seq %d\n", seq);
+                }
+                break;
+            }
 
             struct iphdr *ip = (struct iphdr *)buffer;
             int ip_header_len = ip->ihl * 4;
             struct icmphdr *reply = (struct icmphdr *)(buffer + ip_header_len);
+
+            if (reply->type != ICMP_ECHOREPLY)
+            {
+                if (g_verbose && !error_shown)
+                {
+                    printf("From %s: icmp_seq=%d ICMP error: type %d code=%d\n",
+                        inet_ntoa(addr.sin_addr),
+                        seq,
+                        reply->type,
+                        reply->code);
+                    error_shown = 1;
+                }
+                continue;
+            }
+
+            // Echo reply
+            double time_ms = (end.tv_sec - start.tv_sec) * 1000.0 +
+                             (end.tv_usec - start.tv_usec) / 1000.0;
+
+            printf("64 bytes from %s: icmp_seq=%d ttl=%d time=%.2f ms\n",
+                av[1], seq, ip->ttl, time_ms);
 
             stats.received++;
             stats.sum += time_ms;
             if (time_ms < stats.min) stats.min = time_ms;
             if (time_ms > stats.max) stats.max = time_ms;
 
-            printf("64 bytes from %s: icmp_seq=%d ttl=%d time=%.2f ms\n",
-                av[1],
-                reply->un.echo.sequence,
-                ip->ttl,
-                time_ms);
+            got_reply = 1;
         }
 
         seq++;
