@@ -16,6 +16,11 @@ int parse_args(int ac, char **av){
                 av[1] = av[i + 1];
             break ;
         }
+        else if(strcmp(av[i], "-?") == 0)
+        {
+            print_help();
+            return 1;
+        }
     }
 
     if(check_args_to_ping(av) == 0){

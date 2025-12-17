@@ -108,10 +108,6 @@ int main(int ac, char **av)
     struct sockaddr_in addr;
     socklen_t addr_len = sizeof(addr);
 
-    struct sockaddr_in dest;
-    dest.sin_family = AF_INET;
-    dest.sin_port = 0; //pas de port pour le ICMP LOL
-    dest.sin_addr.s_addr = inet_addr(av[1]);
 
     printf("PING %s:\n", av[1]);
 
@@ -124,7 +120,8 @@ int main(int ac, char **av)
         gettimeofday(&start, NULL);
 
         ssize_t sent = sendto(sock, &icmp, sizeof(icmp), 0,
-            (struct sockaddr *)dest, sizeof(struct sockaddr_in));
+            res->ai_addr, res->ai_addrlen);
+
 
         stats.transmitted++;
 

@@ -134,10 +134,3 @@ void print_help(void){
     printf("  -?    display this help\n");
 }
 
-int check_option(char **av){
-
-
-    if(strcmp(av[1], "-?") == 0)
-        return 1;
-    return 0;
-}
