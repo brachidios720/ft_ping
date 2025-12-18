@@ -43,7 +43,8 @@ void sigint_handler(int sig)
         stats.min == 1e9 ? 0 : stats.min,
         avg,
         stats.max);
-
+    
+    free(res);
     close(0);
     exit(0);
 }
