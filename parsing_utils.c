@@ -60,7 +60,7 @@ char *extract_extension(char **av){
     if((i - start) > 4 )
         return NULL;
     size_t x = 0;
-    char *ret = malloc(sizeof(char) * 4);
+    char *ret = malloc(sizeof(char) * 5);
     if(!ret)
         return NULL;
     while(start < i){
@@ -68,7 +68,7 @@ char *extract_extension(char **av){
         start++;
         x++;
     }
-    ret[x] = '\0';
+    ret[x] = '\0';  
     return ret;
 }
 
